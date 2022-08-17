@@ -20,13 +20,17 @@ import de.neemann.digital.core.io.InValue;
 import de.neemann.digital.core.io.Out;
 import de.neemann.digital.core.memory.DataField;
 import de.neemann.digital.core.memory.DataFieldConverter;
-import de.neemann.digital.core.memory.rom.ROMManger;
+import de.neemann.digital.core.memory.rom.ROMManager;
+import de.neemann.digital.core.memory.rom.ROMManagerFile;
+import de.neemann.digital.core.wiring.AsyncSeq;
 import de.neemann.digital.core.wiring.Clock;
 import de.neemann.digital.draw.graphics.Vector;
 import de.neemann.digital.draw.graphics.*;
+import de.neemann.digital.draw.library.GenericInitCode;
 import de.neemann.digital.draw.model.InverterConfig;
 import de.neemann.digital.draw.shapes.CustomCircuitShapeType;
 import de.neemann.digital.draw.shapes.Drawable;
+import de.neemann.digital.draw.shapes.Shape;
 import de.neemann.digital.draw.shapes.ShapeFactory;
 import de.neemann.digital.draw.shapes.custom.CustomShapeDescription;
 import de.neemann.digital.gui.components.TransformHolder;
@@ -35,6 +39,8 @@ import de.neemann.digital.testing.TestCaseDescription;
 import de.neemann.digital.testing.TestCaseElement;
 import de.neemann.digital.undo.Copyable;
 import de.neemann.gui.language.Language;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -49,9 +55,10 @@ import static de.neemann.digital.core.element.PinInfo.input;
  * This class is also serialized to store a circuit on disk.
  */
 public class Circuit implements Copyable<Circuit> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Circuit.class);
     private static final Set<Drawable> EMPTY_SET = Collections.emptySet();
 
-    private int version = 1;
+    private int version = 2;
     private ElementAttributes attributes;
     private final ArrayList<VisualElement> visualElements;
     private ArrayList<Wire> wires;
@@ -90,8 +97,11 @@ public class Circuit implements Copyable<Circuit> {
         xStream.alias("testData", TestCaseDescription.class);
         xStream.alias("inverterConfig", InverterConfig.class);
         xStream.addImplicitCollection(InverterConfig.class, "inputs");
-        xStream.alias("storedRoms", ROMManger.class);
-        xStream.addImplicitCollection(ROMManger.class, "roms");
+        xStream.alias("storedRoms", ROMManager.class);
+        xStream.addImplicitCollection(ROMManager.class, "roms");
+        xStream.alias("romList", ROMManagerFile.class);
+        xStream.alias("romFile", ROMManagerFile.RomContainerFile.class);
+        xStream.alias("romData", ROMManagerFile.RomContainerDataField.class);
         xStream.alias("appType", Application.Type.class);
         xStream.ignoreUnknownElements();
         xStream.alias("shape", CustomShapeDescription.class);
@@ -116,6 +126,7 @@ public class Circuit implements Copyable<Circuit> {
      * @throws IOException IOException
      */
     public static Circuit loadCircuit(File filename, ShapeFactory shapeFactory) throws IOException {
+        LOGGER.debug("load " + filename);
         final Circuit circuit = loadCircuit(new FileInputStream(filename), shapeFactory);
         circuit.origin = filename;
         return circuit;
@@ -130,6 +141,7 @@ public class Circuit implements Copyable<Circuit> {
      * @throws IOException IOException
      */
     public static Circuit loadCircuit(InputStream in, ShapeFactory shapeFactory) throws IOException {
+        LOGGER.debug("load stream");
         try {
             XStream xStream = getxStream();
             Circuit circuit = (Circuit) xStream.fromXML(in);
@@ -145,6 +157,13 @@ public class Circuit implements Copyable<Circuit> {
                 for (VisualElement e : circuit.getElements())
                     e.setPos(e.getPos().mul(2));
                 circuit.version = 1;
+            }
+            if (circuit.version < 2) {
+                Object rm = circuit.getAttributes().get(Keys.ROMMANAGER);
+                if (rm instanceof ROMManager) {
+                    circuit.getAttributes().set(Keys.ROMMANAGER, new ROMManagerFile((ROMManager) rm));
+                }
+                circuit.version = 2;
             }
             return circuit;
         } catch (RuntimeException e) {
@@ -206,7 +225,7 @@ public class Circuit implements Copyable<Circuit> {
 
         origin = original.origin;
 
-        version = 1;
+        version = 2;
     }
 
     @Override
@@ -241,7 +260,7 @@ public class Circuit implements Copyable<Circuit> {
     }
 
     /**
-     * Draws tis circuit using the given graphic instance
+     * Draws this circuit using the given graphic instance
      *
      * @param graphic the graphic instance used
      */
@@ -252,12 +271,36 @@ public class Circuit implements Copyable<Circuit> {
     /**
      * Draws this circuit using the given graphic instance
      *
+     * @param graphic        the graphic instance used
+     * @param presentingMode if true the test cases are not drawn
+     */
+    public void drawTo(Graphic graphic, boolean presentingMode) {
+        drawTo(graphic, EMPTY_SET, null, SyncAccess.NOSYNC, presentingMode);
+    }
+
+
+    /**
+     * Draws this circuit using the given graphic instance
+     *
      * @param graphic     the graphic instance used
      * @param highLighted a list of Drawables to highlight
      * @param highlight   style used to draw the highlighted elements
      * @param modelSync   sync interface to access the model. Is locked while drawing circuit
      */
     public void drawTo(Graphic graphic, Collection<Drawable> highLighted, Style highlight, SyncAccess modelSync) {
+        drawTo(graphic, highLighted, highlight, modelSync, false);
+    }
+
+    /**
+     * Draws this circuit using the given graphic instance
+     *
+     * @param graphic          the graphic instance used
+     * @param highLighted      a list of Drawables to highlight
+     * @param highlight        style used to draw the highlighted elements
+     * @param modelSync        sync interface to access the model. Is locked while drawing circuit
+     * @param presentationMode if true the test cases are omitted
+     */
+    public void drawTo(Graphic graphic, Collection<Drawable> highLighted, Style highlight, SyncAccess modelSync, boolean presentationMode) {
         if (!dotsPresent) {
             new DotCreator(wires).applyDots();
             dotsPresent = true;
@@ -276,11 +319,19 @@ public class Circuit implements Copyable<Circuit> {
         for (Wire w : wires)
             w.drawTo(graphic, highLighted.contains(w) ? highlight : null);
         graphic.closeGroup();
-        for (VisualElement p : visualElements) {
-            graphic.openGroup();
-            p.drawTo(graphic, highLighted.contains(p) ? highlight : null);
-            graphic.closeGroup();
+        for (VisualElement ve : visualElements) {
+            if (!presentationMode || !hideInPresentationMode(ve)) {
+                graphic.openGroup();
+                ve.drawTo(graphic, highLighted.contains(ve) ? highlight : null);
+                graphic.closeGroup();
+            }
         }
+    }
+
+    private boolean hideInPresentationMode(VisualElement ve) {
+        return ve.equalsDescription(TestCaseElement.DESCRIPTION)
+                || ve.equalsDescription(GenericInitCode.DESCRIPTION)
+                || ve.equalsDescription(AsyncSeq.DESCRIPTION);
     }
 
     /**
@@ -781,6 +832,37 @@ public class Circuit implements Copyable<Circuit> {
             }
         }
         return new ObservableValues(pinList);
+    }
+
+    /**
+     * Returns a list of elements that matches the given string.
+     * Searches in labels, descriptions, pin numbers and pin labels.
+     *
+     * @param search the string to search for
+     * @return the matching elements
+     */
+    public ArrayList<VisualElement> findElements(String search) {
+        search = search.toLowerCase();
+        ArrayList<VisualElement> found = new ArrayList<>();
+        for (VisualElement ve : visualElements) {
+            ElementAttributes attr = ve.getElementAttributes();
+            boolean match = (attr.getLabel().toLowerCase().contains(search))
+                    || (attr.get(Keys.DESCRIPTION).toLowerCase().contains(search))
+                    || (attr.get(Keys.NETNAME).toLowerCase().contains(search))
+                    || (attr.get(Keys.PINNUMBER).toLowerCase().contains(search));
+
+            if (!match) {
+                Shape shape = ve.getShape();
+                for (Pin p : shape.getPins())
+                    if (p.getName().toLowerCase().contains(search)) {
+                        match = true;
+                        break;
+                    }
+            }
+            if (match)
+                found.add(ve);
+        }
+        return found;
     }
 
     /**

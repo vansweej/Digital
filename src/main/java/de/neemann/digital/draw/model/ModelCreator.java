@@ -11,7 +11,7 @@ import de.neemann.digital.core.NodeException;
 import de.neemann.digital.core.element.*;
 import de.neemann.digital.core.io.In;
 import de.neemann.digital.core.io.Out;
-import de.neemann.digital.core.memory.rom.ROMManger;
+import de.neemann.digital.core.memory.rom.ROMManagerFile;
 import de.neemann.digital.core.wiring.Clock;
 import de.neemann.digital.core.wiring.Splitter;
 import de.neemann.digital.draw.elements.*;
@@ -308,8 +308,8 @@ public class ModelCreator implements Iterable<ModelEntry> {
             e.getVisualElement().getShape().registerModel(this, m, e);
         }
 
-        ROMManger romManager = circuit.getAttributes().get(Keys.ROMMANAGER);
-        romManager.applyTo(m);
+        ROMManagerFile romManager = circuit.getAttributes().get(Keys.ROMMANAGER);
+        romManager.applyTo(m, circuit.getOrigin());
 
         return m;
     }

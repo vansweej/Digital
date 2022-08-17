@@ -68,6 +68,9 @@ public class CircuitComponent extends JComponent implements ChangedListener, Lib
     private static final Icon ICON_REDO = IconCreator.create("edit-redo.png");
     private static final ArrayList<Key> ATTR_LIST = new ArrayList<>();
 
+    private static final double MAX_SCALE = 50;
+    private static final double MIN_SCALE = 0.01;
+
     static {
         ATTR_LIST.add(Keys.LABEL);
         ATTR_LIST.add(Keys.WIDTH);
@@ -90,6 +93,7 @@ public class CircuitComponent extends JComponent implements ChangedListener, Lib
         ATTR_LIST.add(Keys.SKIP_HDL);
         ATTR_LIST.add(Keys.IS_GENERIC);
     }
+
 
     /**
      * @return returns the list of circuit attributes
@@ -148,6 +152,7 @@ public class CircuitComponent extends JComponent implements ChangedListener, Lib
     private boolean toolTipHighlighted = false;
     private NetList toolTipNetList;
     private String lastUsedTunnelName;
+    private boolean presentationMode;
 
     /**
      * Creates a new instance
@@ -229,15 +234,17 @@ public class CircuitComponent extends JComponent implements ChangedListener, Lib
         setFocusable(true);
 
         addMouseWheelListener(e -> {
-            Vector pos = getPosVector(e);
             double f = Math.pow(0.9, e.getWheelRotation());
-            transform.translate(pos.x, pos.y);
-            transform.scale(f, f);
-            transform.translate(-pos.x, -pos.y);
-            isManualScale = true;
-            if (circuitScrollPanel != null)
-                circuitScrollPanel.transformChanged(transform);
-            graphicHasChanged();
+            if (scalingValid(f)) {
+                Vector pos = getPosVector(e);
+                transform.translate(pos.x, pos.y);
+                transform.scale(f, f);
+                transform.translate(-pos.x, -pos.y);
+                isManualScale = true;
+                if (circuitScrollPanel != null)
+                    circuitScrollPanel.transformChanged(transform);
+                graphicHasChanged();
+            }
         });
 
         addComponentListener(new ComponentAdapter() {
@@ -589,12 +596,12 @@ public class CircuitComponent extends JComponent implements ChangedListener, Lib
         Vector pos = getPosVector(event);
         VisualElement ve = circuit.getElementAt(pos);
         if (ve != null) {
+            if (presentationMode)
+                return null;
+
             Pin p = ve.getPinAt(raster(pos));
             if (p != null)
                 return createPinToolTip(p);
-
-            if (Settings.getInstance().get(Keys.SETTINGS_NOTOOLTIPS))
-                return null;
 
             try {
                 ElementTypeDescription etd = library.getElementType(ve.getElementName());
@@ -880,13 +887,18 @@ public class CircuitComponent extends JComponent implements ChangedListener, Lib
             gr2.setColor(ColorScheme.getSelected().getColor(ColorKey.BACKGROUND));
             gr2.fillRect(0, 0, getWidth(), getHeight());
 
-            if (scaleX > 0.3 && Settings.getInstance().get(Keys.SETTINGS_GRID))
+            if (scaleX > 0.3 && Settings.getInstance().get(Keys.SETTINGS_GRID) && !presentationMode)
                 drawGrid(gr2);
+
+            if (presentationMode) {
+                gr2.setColor(Color.LIGHT_GRAY);
+                gr2.drawString(Lang.get("menu_presentationMode"), 4, getHeight() - 4);
+            }
 
             gr2.transform(transform);
 
             long time = System.currentTimeMillis();
-            getCircuitOrShallowCopy().drawTo(gr, highLighted, highLightStyle, modelSync);
+            getCircuitOrShallowCopy().drawTo(gr, highLighted, highLightStyle, modelSync, presentationMode);
             time = System.currentTimeMillis() - time;
 
             boolean scaleHasChanged = lastScaleX != scaleX;
@@ -996,13 +1008,18 @@ public class CircuitComponent extends JComponent implements ChangedListener, Lib
     }
 
     /**
-     * @return the circuit shown
+     * @return the circuit used
      */
     public Circuit getCircuit() {
         return undoManager.getActual();
     }
 
-    private Circuit getCircuitOrShallowCopy() {
+    /**
+     * Returns the used circuit or the shallow copy if available
+     *
+     * @return the circuit shown
+     */
+    public Circuit getCircuitOrShallowCopy() {
         if (shallowCopy != null)
             return shallowCopy;
         else
@@ -1032,7 +1049,7 @@ public class CircuitComponent extends JComponent implements ChangedListener, Lib
      */
     public void fitCircuit() {
         GraphicMinMax gr = new GraphicMinMax();
-        getCircuitOrShallowCopy().drawTo(gr);
+        getCircuitOrShallowCopy().drawTo(gr, presentationMode);
 
         AffineTransform newTrans = new AffineTransform();
         if (gr.getMin() != null && getWidth() != 0 && getHeight() != 0) {
@@ -1068,14 +1085,24 @@ public class CircuitComponent extends JComponent implements ChangedListener, Lib
      * @param f factor to scale
      */
     public void scaleCircuit(double f) {
-        Vector dif = getPosVector(getWidth() / 2, getHeight() / 2);
-        transform.translate(dif.x, dif.y);
-        transform.scale(f, f);
-        transform.translate(-dif.x, -dif.y);
-        isManualScale = true;
-        if (circuitScrollPanel != null)
-            circuitScrollPanel.transformChanged(transform);
-        graphicHasChanged();
+        if (scalingValid(f)) {
+            Vector dif = getPosVector(getWidth() / 2, getHeight() / 2);
+            transform.translate(dif.x, dif.y);
+            transform.scale(f, f);
+            transform.translate(-dif.x, -dif.y);
+            isManualScale = true;
+            if (circuitScrollPanel != null)
+                circuitScrollPanel.transformChanged(transform);
+            graphicHasChanged();
+        }
+    }
+
+    private boolean scalingValid(double f) {
+        if (transform.getScaleX() > MAX_SCALE && f > 1)
+            return false;
+        if (transform.getScaleX() < MIN_SCALE && f < 1)
+            return false;
+        return true;
     }
 
     /**
@@ -1187,6 +1214,7 @@ public class CircuitComponent extends JComponent implements ChangedListener, Lib
                                     .setFileToOpen(((ElementTypeDescriptionCustom) elementType).getFile())
                                     .setLibrary(library)
                                     .denyMostFileActions()
+                                    .setPresentationMode(presentationMode)
                                     .keepPrefMainFile()
                                     .openLater();
                         }
@@ -1496,6 +1524,23 @@ public class CircuitComponent extends JComponent implements ChangedListener, Lib
      */
     public void setCopy(Circuit circuit) {
         shallowCopy = circuit;
+    }
+
+    /**
+     * Sets the hide tests flag
+     *
+     * @param presentationMode if true, tests are hidden
+     */
+    public void setPresentationMode(boolean presentationMode) {
+        this.presentationMode = presentationMode;
+        graphicHasChanged();
+    }
+
+    /**
+     * @return the "tests are hidden" flag
+     */
+    public boolean getPresentationMode() {
+        return presentationMode;
     }
 
     private final class PlusMinusAction extends ToolTipAction {

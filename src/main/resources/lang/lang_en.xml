@@ -1522,9 +1522,6 @@
 
     <string name="key_macMouse">Use macOS mouse clicks.</string>
     <string name="key_macMouse_tt">Uses CTRL-click instead of right-click.</string>
-    <string name="key_noComponentToolTips">No tool tips for components on the main panel.</string>
-    <string name="key_noComponentToolTips_tt">If set, no tool tips for the components on the main panel are displayed.
-        Especially in a presentation, these tool tips can be very annoying.</string>
     <string name="key_tunnelRenameDialog">Show dialog for automatic renaming of tunnels.</string>
     <string name="key_tunnelRenameDialog_tt">If set, a dialog for automatically renaming all tunnels of the same name is displayed after a
         tunnel has been renamed.</string>
@@ -1674,6 +1671,12 @@
         the server is a simple TCP server.</string>
     <string name="key_port">Port</string>
     <string name="key_port_tt">The port to be opened by the server.</string>
+
+    <string name="key_openRemotePort">Allow remote connection</string>
+    <string name="key_openRemotePort_tt">If set, a TCP/IP port is opened, through which the control of the
+        simulator is possible.</string>
+    <string name="key_remotePort">Port number</string>
+    <string name="key_remotePort_tt">The port on which the remote server is opened.</string>
 
     <string name="key_skipHDL">Skip in Verilog/VHDL export</string>
     <string name="key_skipHDL_tt">Skips generating the internals of the circuit in Verilog/VHDL
@@ -1869,6 +1872,8 @@
     <string name="menu_table_createTT2_tt">Creates a file containing the circuit similar to the Berkeley Logic Interchange Format (BLIF).
         After that the Atmel fitter is started to create the JEDEC file. </string>
     <string name="menu_table_createCircuit">Circuit</string>
+    <string name="menu_table_createCircuitMore">Circuit Variants</string>
+    <string name="menu_table_maxInputs_N">Use gates with at most {0} inputs</string>
     <string name="menu_table_createCircuit_tt">Creates a circuit which reproduces the truth table.</string>
     <string name="menu_table_createCircuitJK">Circuit with JK flip-flops</string>
     <string name="menu_table_createCircuitJK_tt">Creates a circuit which reproduces the truth table. Uses JK flip-flops.</string>
@@ -1882,10 +1887,6 @@
     <string name="menu_table_createNOrTwo">Circuit with NOr gates with two inputs</string>
     <string name="menu_table_createNOrTwo_tt">Use only NOr gates with two inputs.</string>
     <string name="menu_table_createNOr_tt">Creates a circuit which reproduces the truth table only with NOr gates.</string>
-    <string name="menu_table_createTwo">Circuit with two input gates</string>
-    <string name="menu_table_createTwo_tt">Create circuit, use only gates with two inputs</string>
-    <string name="menu_table_createThree">Circuit with three input gates</string>
-    <string name="menu_table_createThree_tt">Create circuit, use only gates with a maximum of three inputs</string>
     <string name="menu_table_create_hardware">Device</string>
     <string name="menu_table_create_jedec_tt">Creates a JEDEC file for the device</string>
     <string name="menu_table_exportTableLaTeX">Export LaTeX</string>
@@ -1953,6 +1954,9 @@
     <string name="menu_probe_memory_tt">Shows the content of memory components.</string>
     <string name="menu_treeSelect">Component Tree View</string>
     <string name="menu_treeSelect_tt">Shows a tree view of available components at the left side.</string>
+    <string name="menu_presentationMode">Presentation Mode</string>
+    <string name="menu_presentationMode_tt">A simplified view that, for example, omits the test cases, which can be useful for presentations.</string>
+
     <string name="menu_karnaughMap">K-Map</string>
     <string name="menu_karnaughMap_tt">Shows a K-map representation of the table!</string>
 
@@ -1997,6 +2001,9 @@
     <string name="menu_labelPins">Label Inputs and Outputs</string>
     <string name="menu_labelPins_tt">Set a label to all inputs and outputs without a label.</string>
 
+    <string name="menu_find">Find</string>
+    <string name="menu_find_tt">Finds labels, net names and pin numbers.</string>
+
     <string name="menu_tutorial">Start Tutorial</string>
     <string name="menu_tutorial_tt">Starts the beginner tutorial.</string>
 
@@ -2026,7 +2033,7 @@
         <p>Written by H. Neemann in 2016-2021.</p>
         <p>The icons are taken from the <a href="http://tango.freedesktop.org">Tango Desktop Project</a>.</p>
         <p>Visit the project at <a href="https://github.com/hneemann/[[name]]">GitHub</a>.
-        At Github you can also <a href="https://github.com/hneemann/[[name]]/releases/latest">download</a>
+        At GitHub you can also <a href="https://github.com/hneemann/[[name]]/releases/latest">download</a>
         the latest release.</p>
         <p>There you also can file an <a href="https://github.com/hneemann/[[name]]/issues/new?body=version:%20[[version]]&labels=bug">issue</a>
         or suggest
@@ -2110,7 +2117,13 @@
     <string name="msg_circuitIsRequired">To create a hardware description, a circuit must first be created and analyzed.
         A standalone truth table can not be used to generate a hardware description.</string>
     <string name="win_romDialog">Included ROMs</string>
+
     <string name="msg_noData">no data</string>
+    <string name="key_source">Data Source</string>
+    <string name="key_source_noData">load no data at all</string>
+    <string name="key_source_file">file</string>
+    <string name="key_source_dataField">stored data</string>
+    <string name="err_could_not_load_rom">Could not load ROM data!</string>
 
     <string name="msg_errorClosingExternalProcess">Could not close external process!</string>
 

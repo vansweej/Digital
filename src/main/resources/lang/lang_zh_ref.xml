@@ -653,9 +653,6 @@ In the file howTo.md you can find more details about translations.
   <string name="key_dipDefault_tt">The default output value of the DIP switch when the simulation starts.</string>
     <string name="key_macMouse">Use macOS mouse clicks.</string>
   <string name="key_macMouse_tt">Uses CTRL-click instead of right-click.</string>
-  <string name="key_noComponentToolTips">No tool tips for components on the main panel.</string>
-  <string name="key_noComponentToolTips_tt">If set, no tool tips for the components on the main panel are displayed.
-        Especially in a presentation, these tool tips can be very annoying.</string>
   <string name="key_tunnelRenameDialog">Show dialog for automatic renaming of tunnels.</string>
   <string name="key_tunnelRenameDialog_tt">If set, a dialog for automatically renaming all tunnels of the same name is displayed after a
         tunnel has been renamed.</string>
@@ -854,10 +851,6 @@ In the file howTo.md you can find more details about translations.
   <string name="menu_table_createNOrTwo">Circuit with NOr gates with two inputs</string>
   <string name="menu_table_createNOrTwo_tt">Use only NOr gates with two inputs.</string>
   <string name="menu_table_createNOr_tt">Creates a circuit which reproduces the truth table only with NOr gates.</string>
-  <string name="menu_table_createTwo">Circuit with two input gates</string>
-    <string name="menu_table_createTwo_tt">Create circuit, use only gates with two inputs</string>
-  <string name="menu_table_createThree">Circuit with three input gates</string>
-    <string name="menu_table_createThree_tt">Create circuit, use only gates with a maximum of three inputs</string>
   <string name="menu_table_create_hardware">Device</string>
   <string name="menu_table_create_jedec_tt">Creates a JEDEC file for the device</string>
   <string name="menu_table_exportTableLaTeX">Export LaTeX</string>
@@ -967,7 +960,7 @@ In the file howTo.md you can find more details about translations.
         <p>Written by H. Neemann in 2016-2021.</p>
         <p>The icons are taken from the <a href="http://tango.freedesktop.org">Tango Desktop Project</a>.</p>
         <p>Visit the project at <a href="https://github.com/hneemann/[[name]]">GitHub</a>.
-        At Github you can also <a href="https://github.com/hneemann/[[name]]/releases/latest">download</a>
+        At GitHub you can also <a href="https://github.com/hneemann/[[name]]/releases/latest">download</a>
         the latest release.</p>
         <p>There you also can file an <a href="https://github.com/hneemann/[[name]]/issues/new?body=version:%20[[version]]&labels=bug">issue</a>
         or suggest

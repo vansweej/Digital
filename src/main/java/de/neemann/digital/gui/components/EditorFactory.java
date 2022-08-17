@@ -13,7 +13,7 @@ import de.neemann.digital.core.extern.PortDefinition;
 import de.neemann.digital.core.io.InValue;
 import de.neemann.digital.core.io.MIDIHelper;
 import de.neemann.digital.core.memory.DataField;
-import de.neemann.digital.core.memory.rom.ROMManger;
+import de.neemann.digital.core.memory.rom.ROMManagerFile;
 import de.neemann.digital.draw.elements.PinException;
 import de.neemann.digital.draw.elements.VisualElement;
 import de.neemann.digital.draw.graphics.ColorScheme;
@@ -66,7 +66,7 @@ public final class EditorFactory {
         add(Language.class, LanguageEditor.class);
         add(TestCaseDescription.class, TestCaseDescriptionEditor.class);
         add(InverterConfig.class, InverterConfigEditor.class);
-        add(ROMManger.class, ROMManagerEditor.class);
+        add(ROMManagerFile.class, ROMManagerEditor.class);
         add(Application.Type.class, ApplicationTypeEditor.class);
         add(CustomShapeDescription.class, CustomShapeEditor.class);
         add(ColorScheme.class, ColorSchemeEditor.class);
@@ -332,9 +332,39 @@ public final class EditorFactory {
             }
             if (selects == null)
                 selects = DEFAULTS;
+
+            if (key instanceof Key.KeyInteger) {
+                selects = cleanupSelects((Key.KeyInteger) key, selects);
+            }
+
             comboBox = new JComboBox<>(selects);
             comboBox.setEditable(true);
             comboBox.setSelectedItem(new IntegerValue(value));
+        }
+
+        private static IntegerValue[] cleanupSelects(Key.KeyInteger key, IntegerValue[] selects) {
+            if (!key.isMinOrMaxSet())
+                return selects;
+
+            ArrayList<IntegerValue> allowed = new ArrayList<>(selects.length);
+            boolean minAdded = false;
+            boolean maxAdded = false;
+            for (IntegerValue iv : selects) {
+                int v = iv.value;
+                if (v <= key.getMin()) {
+                    if (!minAdded) {
+                        allowed.add(new IntegerValue(key.getMin()));
+                        minAdded = true;
+                    }
+                } else if (v >= key.getMax()) {
+                    if (!maxAdded) {
+                        allowed.add(new IntegerValue(key.getMax()));
+                        maxAdded = true;
+                    }
+                } else
+                    allowed.add(iv);
+            }
+            return allowed.toArray(new IntegerValue[0]);
         }
 
         @Override
@@ -428,7 +458,7 @@ public final class EditorFactory {
                 value = ((Number) item).longValue();
             else {
                 try {
-                    value = Bits.decode(item.toString());
+                    value = Bits.decode(item.toString(), true);
                 } catch (Bits.NumberFormatException e) {
                     throw new EditorParseException(e);
                 }
@@ -620,6 +650,7 @@ public final class EditorFactory {
 
         private DataField data;
         private boolean majorModification = false;
+        private JButton editButton;
 
         public DataFieldEditor(DataField data, Key<DataField> key) {
             this.data = data;
@@ -628,7 +659,7 @@ public final class EditorFactory {
         @Override
         public JComponent getComponent(ElementAttributes attr) {
             JPanel panel = new JPanel(new GridLayout(1, 2));
-            panel.add(new ToolTipAction(Lang.get("btn_edit")) {
+            editButton = new ToolTipAction(Lang.get("btn_edit")) {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {
@@ -648,7 +679,8 @@ public final class EditorFactory {
                         new ErrorMessage(Lang.get("msg_invalidEditorValue")).addCause(e1).show(panel);
                     }
                 }
-            }.createJButton());
+            }.createJButton();
+            panel.add(editButton);
             return panel;
         }
 
@@ -669,6 +701,12 @@ public final class EditorFactory {
         public DataField getValue() {
             data.trim();
             return data;
+        }
+
+        @Override
+        public void setEnabled(boolean enabled) {
+            super.setEnabled(enabled);
+            editButton.setEnabled(enabled);
         }
 
         @Override
@@ -957,11 +995,11 @@ public final class EditorFactory {
         }
     }
 
-    private static class ROMManagerEditor extends LabelEditor<ROMManger> {
+    private static class ROMManagerEditor extends LabelEditor<ROMManagerFile> {
         private final JPanel buttons;
-        private ROMManger romManager;
+        private ROMManagerFile romManager;
 
-        public ROMManagerEditor(ROMManger aRomManager, Key<ROMManger> key) {
+        public ROMManagerEditor(ROMManagerFile aRomManager, Key<ROMManagerFile> key) {
             this.romManager = aRomManager;
             buttons = new JPanel(new GridLayout(1, 2));
             buttons.add(new ToolTipAction(Lang.get("btn_help")) {
@@ -1007,12 +1045,12 @@ public final class EditorFactory {
         }
 
         @Override
-        public ROMManger getValue() {
+        public ROMManagerFile getValue() {
             return romManager;
         }
 
         @Override
-        public void setValue(ROMManger value) {
+        public void setValue(ROMManagerFile value) {
             romManager = value;
         }
     }

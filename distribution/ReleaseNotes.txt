@@ -1,7 +1,17 @@
 Release Notes
 
-HEAD, planned as v0.29
+HEAD, planned as v0.30
+- Added a search function
+- Added a presentation mode.
+- The remote server is now disabled by default.
+  It must be enabled in the settings.
+
+v0.29, released on 11. February 2022
 - Allows loading byte base files in big-endian format.
+- Added some more DIL chips
+- Tunnel now shows signal state
+- Fixes tutorial dialog positioning issue
+- Fixed some issues with 7489 and 74189
 - Fixed a bug in the LUT component that caused difficulties
   when generic code was executed.
 - Fixed an issue in the seven segment persistence of vision

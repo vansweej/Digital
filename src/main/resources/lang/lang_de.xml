@@ -1534,9 +1534,6 @@ Sind evtl. die Namen der Variablen nicht eindeutig?</string>
     <string name="key_dipDefault_tt">Der Vorgabewert des DIP-Schalters, wenn die Simulation gestartet wird.</string>
     <string name="key_macMouse">Die MacOS Mausklicks verwenden.</string>
     <string name="key_macMouse_tt">Das unter MacOS übliche STRG-Klick anstelle von Rechtsklick verwenden.</string>
-    <string name="key_noComponentToolTips">Keine ToolTips für Bauteile auf der Arbeitsfläche.</string>
-    <string name="key_noComponentToolTips_tt">Wenn gesetzt, werden keine ToolTips für die Bauteile auf der Arbeitsfläche angezeigt.
-        Vor allem in einer Präsentation können diese ToolTips sehr störend sein.</string>
     <string name="key_tunnelRenameDialog">Dialog zum automatischen umbenennen von Tunneln anzeigen</string>
     <string name="key_tunnelRenameDialog_tt">Wenn gesetzt, wird nach dem Umbenennen eines Tunnels ein Dialog für automatisches Umbenennen
         aller gleichnamigen Tunnel angezeigt.</string>
@@ -1692,6 +1689,12 @@ Sind evtl. die Namen der Variablen nicht eindeutig?</string>
     </string>
     <string name="key_port">Port</string>
     <string name="key_port_tt">Der vom Server zu öffnende Port.</string>
+
+    <string name="key_openRemotePort">Remote-Verbindung zulassen</string>
+    <string name="key_openRemotePort_tt">Wenn gesetzt, wird ein TCP/IP Port geöffnet, über welchen die Steuerung
+        des Simulators möglich ist.</string>
+    <string name="key_remotePort">Port-Nummer</string>
+    <string name="key_remotePort_tt">Der Port, auf welchem der Remote-Server geöffnet wird.</string>
 
     <string name="key_skipHDL">In Verilog/VHDL-Export auslassen</string>
     <string name="key_skipHDL_tt">Wenn gesetzt wird diese Schaltung bei der Generierung von
@@ -1888,6 +1891,8 @@ Sind evtl. die Namen der Variablen nicht eindeutig?</string>
         Danach wird der Atmel-Fitter gestartet, um daraus die JEDEC Datei zu erzeugen.</string>
     <string name="menu_table_createCircuit">Schaltung</string>
     <string name="menu_table_createCircuit_tt">Erzeugt eine Schaltung, welche der Wahrheitstabelle entspricht.</string>
+    <string name="menu_table_createCircuitMore">Schaltungsvarianten</string>
+    <string name="menu_table_maxInputs_N">Verwende Gatter mit maximal {0} Eingängen</string>
     <string name="menu_table_createCircuitJK">Schaltung mit JK Flipflops</string>
     <string name="menu_table_createCircuitJK_tt">Erzeugt eine Schaltung, welche der Wahrheitstabelle entspricht. Verwendet JK-Flipflops.</string>
     <string name="menu_table_createCircuitLUT">Schaltung mit LUTs</string>
@@ -1900,10 +1905,6 @@ Sind evtl. die Namen der Variablen nicht eindeutig?</string>
     <string name="menu_table_createNOrTwo">Schaltung mit NOr-Gattern mit zwei Eingängen</string>
     <string name="menu_table_createNOrTwo_tt">Erzeugt eine Schaltung, welche der Wahrheitstabelle entspricht nur mit NOr-Gattern mit zwei Eingängen.</string>
     <string name="menu_table_createNOr_tt">Erzeugt eine Schaltung, welche der Wahrheitstabelle entspricht nur mit NOr-Gattern.</string>
-    <string name="menu_table_createTwo">Schaltung mit Gattern mit zwei Eingängen</string>
-    <string name="menu_table_createTwo_tt">Erzeugt eine Schaltung und verwendet nur Gatter mit zwei Eingängen.</string>
-    <string name="menu_table_createThree">Schaltung mit Gattern mit drei Eingängen</string>
-    <string name="menu_table_createThree_tt">Erzeugt eine Schaltung und verwendet nur Gatter mit maximal drei Eingängen.</string>
     <string name="menu_table_create_hardware">Bausteine</string>
     <string name="menu_table_create_jedec_tt">Erzeugt eine JEDEC Datei für den Baustein</string>
     <string name="menu_table_exportTableLaTeX">Erzeuge LaTeX</string>
@@ -1972,6 +1973,8 @@ Sind evtl. die Namen der Variablen nicht eindeutig?</string>
     <string name="menu_insertAsNew_tt">Der Inhalt der Zwischenablage wird in einem neuen Fenster geöffnet.</string>
     <string name="menu_treeSelect">Baumansicht der Bauteile</string>
     <string name="menu_treeSelect_tt">Zeigt am linken Rand des Fensters eine Baumansicht der verfügbaren Bauteile.</string>
+    <string name="menu_presentationMode">Präsentationsmodus</string>
+    <string name="menu_presentationMode_tt">Eine vereinfachte Darstellung, die z.B. die Testfälle auslässt, was für Präsentationen hilfreich sein kann.</string>
 
     <string name="menu_special">Sonderfunktionen 74xx</string>
     <string name="menu_addPrefix">IO-Präfix anfügen</string>
@@ -2015,6 +2018,9 @@ Sind evtl. die Namen der Variablen nicht eindeutig?</string>
         Die ZIP-Datei enthält damit alle Dateien, die für den Betrieb der Schaltung erforderlich sind.</string>
     <string name="menu_labelPins">Ein- und Ausgänge benennen</string>
     <string name="menu_labelPins_tt">Für alle unbenannten Ein- und Ausgänge eine Bezeichnung setzen.</string>
+
+    <string name="menu_find">Suchen</string>
+    <string name="menu_find_tt">Durchsucht Bezeichnungen, Netznamen und Pinnummern.</string>
 
     <string name="menu_tutorial">Tutorial starten</string>
     <string name="menu_tutorial_tt">Startet das Anfänger-Tutorial.</string>
@@ -2124,7 +2130,13 @@ Sind evtl. die Namen der Variablen nicht eindeutig?</string>
 Soll dennoch exportiert werden?</string>
     <string name="msg_circuitIsRequired">Um eine Hardwarebeschreibung zu erzeugen, muss zuvor eine Schaltung erstellt
         und analysiert werden. Aus nur einer Wahrheitstabelle kann keine Hardwarebeschreibung erzeugt werden.</string>
+
     <string name="msg_noData">keine Daten</string>
+    <string name="key_source">Datenquelle</string>
+    <string name="key_source_noData">keine Daten laden</string>
+    <string name="key_source_file">Datei</string>
+    <string name="key_source_dataField">gespeicherte Daten</string>
+    <string name="err_could_not_load_rom">ROM-Daten konnten nicht geladen werden!</string>
 
     <string name="msg_errorClosingExternalProcess">Konnte externen Prozess nicht beenden!</string>
     <string name="msg_checkResult">Ergebnis der Überprüfung:</string>

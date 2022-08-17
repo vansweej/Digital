@@ -1192,9 +1192,6 @@ In the file howTo.md you can find more details about translations.
     <string name="key_dipDefault_tt">Il valore d'uscita predefinito di un interruttore DIP quando la simulazione parte.</string>
     <string name="key_macMouse">Utilizza il click del mouse di macOS.</string>
     <string name="key_macMouse_tt">Utilizza Ctrl+Click anziché il click destro.</string>
-    <string name="key_noComponentToolTips">Nessun suggerimento mostrato per i componenti nel pannello principale</string>
-    <string name="key_noComponentToolTips_tt">Se impostato, nessun suggerimento è mostrato per i componenti nel pannello principale.
-        Specialmente in una presentazione, questi suggerimenti possono risultare noiosi.</string>
     <string name="key_tunnelRenameDialog">Mostra il dialogo per rinominare automaticamente i tunnel.</string>
     <string name="key_tunnelRenameDialog_tt">Se impostato, una finestra di dialogo viene mostrata per rinominare automaticamente i tunnel con lo stesso nome
         dopo aver rinominato un tunnel.</string>
@@ -1479,10 +1476,6 @@ In the file howTo.md you can find more details about translations.
     <string name="menu_table_createNOrTwo">Circuito con porte NOR con due ingressi</string>
     <string name="menu_table_createNOrTwo_tt">Utilizza soltanto porte NOR con due ingressi.</string>
     <string name="menu_table_createNOr_tt">Crea un circuito che riproduce le tabelle di verità utilizzando soltanto porte NOR.</string>
-    <string name="menu_table_createTwo">Circuito con due porte di ingresso</string>
-    <string name="menu_table_createTwo_tt">Crea un circuito utilizzando soltanto porte con due ingresssi</string>
-    <string name="menu_table_createThree">Circuito con porte a tre ingressi</string>
-    <string name="menu_table_createThree_tt">Crea un circuito utilizzando soltanto porte con tre ingressi</string>
     <string name="menu_table_create_hardware">Dispositivo</string>
     <string name="menu_table_create_jedec_tt">Crea un file JEDEC per il dispositivo</string>
     <string name="menu_table_exportTableLaTeX">Esporta LaTeX</string>
@@ -1597,7 +1590,7 @@ In the file howTo.md you can find more details about translations.
         &lt;p&gt;Scritto da H. Neemann nel 2016-2021.&lt;/p&gt;
         &lt;p&gt;Le icone sono prese dal &lt;a href="http://tango.freedesktop.org"&gt;Tango Desktop Project&lt;/a&gt;.&lt;/p&gt;
         &lt;p&gt;Visita il progetto su &lt;a href="https://github.com/hneemann/[[name]]"&gt;GitHub&lt;/a&gt;.
-        Su Github puoi anche &lt;a href="https://github.com/hneemann/[[name]]/releases/latest"&gt;scaricare&lt;/a&gt;
+        Su GitHub puoi anche &lt;a href="https://github.com/hneemann/[[name]]/releases/latest"&gt;scaricare&lt;/a&gt;
         l'ultima versione.&lt;/p&gt;
         &lt;p&gt;Puoi anche inviare un &lt;a href="https://github.com/hneemann/[[name]]/issues/new?body=version:%20[[version]]&amp;labels=bug"&gt;problema&lt;/a&gt;
         o suggerire

@@ -527,8 +527,6 @@ In the file howTo.md you can find more details about translations.
   <string name="key_dipDefault_tt">默认输出</string>
   <string name="key_macMouse">使用 MacOS 鼠标单击</string>
   <string name="key_macMouse_tt">使用 CTRL+左键 代替右键单击。</string>
-  <string name="key_noComponentToolTips">在主面板中不显示工具提示</string>
-  <string name="key_noComponentToolTips_tt">如果选中，将不会在主面板中显示组件的工具提示。</string>
   <string name="key_tunnelRenameDialog">显示自动重命名隧道组件对话框</string>
   <string name="key_tunnelRenameDialog_tt">如果选中，当一个隧道组件被重命名后，将会显示为同名隧道组件自动重命名的对话框。</string>
   <string name="key_ATMISP_tt">可执行文件ATMISP.exe的路径。设置后，ATMISP 软件可以被自动启动！</string>
@@ -710,10 +708,6 @@ In the file howTo.md you can find more details about translations.
   <string name="menu_table_createNOrTwo">基于2输入或非门的电路</string>
   <string name="menu_table_createNOrTwo_tt">仅使用2输入或非门创建电路</string>
   <string name="menu_table_createNOr_tt">仅使用或非门电路表示真值表</string>
-  <string name="menu_table_createTwo">基于2输入门的电路</string>
-  <string name="menu_table_createTwo_tt">仅使用2输入门创建电路</string>
-  <string name="menu_table_createThree">基于3输入门的电路</string>
-  <string name="menu_table_createThree_tt">仅使用最多3输入的门创建电路</string>
   <string name="menu_table_create_hardware">器件</string>
   <string name="menu_table_create_jedec_tt">为器件创建 JEDEC 文件</string>
   <string name="menu_table_exportTableLaTeX">导出 LaTeX</string>
@@ -1588,7 +1582,7 @@ In the file howTo.md you can find more details about translations.
     <string name="key_shapeType_SIMPLE">Simple</string>
     <string name="key_shapeType_DIL">DIL-Chip</string>
     <string name="key_shapeType_LAYOUT">Layout</string>
-    <string name="lib_ram">RA</string>
+    <string name="lib_ram">RAM</string>
     <string name="lib_eeprom">EEPROM</string>
     <string name="cli_help_test_allowMissingInputs">允许电路中缺少测试用例中定义的输入。 如果有几种可能的解决方案可能取决于不同的输入，这将很有用。</string>
     <string name="menu_table_exportCSV">CSV</string>

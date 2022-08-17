@@ -48,7 +48,6 @@ public final class Settings extends SettingsBase {
         intList.add(Keys.SETTINGS_DEFAULT_TREESELECT);
         intList.add(Keys.SETTINGS_GRID);
         intList.add(Keys.SETTINGS_SHOW_WIRE_BITS);
-        intList.add(Keys.SETTINGS_NOTOOLTIPS);
         intList.add(Keys.SETTINGS_WIRETOOLTIP);
         intList.add(Keys.SETTINGS_LIBRARY_PATH);
         intList.add(Keys.SETTINGS_JAR_PATH);
@@ -61,6 +60,8 @@ public final class Settings extends SettingsBase {
         intList.add(Keys.SETTINGS_MAC_MOUSE);
         intList.add(Keys.SETTINGS_USE_EQUALS_KEY);
         intList.add(Keys.SETTINGS_SHOW_TUNNEL_RENAME_DIALOG);
+        intList.add(Keys.SETTINGS_OPEN_REMOTE_PORT);
+        intList.add(Keys.SETTINGS_REMOTE_PORT);
 
         return Collections.unmodifiableList(intList);
     }

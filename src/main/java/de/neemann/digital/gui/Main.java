@@ -187,13 +187,16 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
         circuitComponent = new CircuitComponent(this, library, shapeFactory);
         circuitComponent.addListener(this);
         if (builder.circuit != null) {
+            LOGGER.debug("create with given circuit: " + builder.circuit.getOrigin());
             SwingUtilities.invokeLater(() -> circuitComponent.setCircuit(builder.circuit));
             setFilename(builder.fileToOpen, false);
         } else {
             if (builder.fileToOpen != null) {
+                LOGGER.debug("create with given file " + builder.fileToOpen);
                 SwingUtilities.invokeLater(() -> loadFile(builder.fileToOpen, builder.library == null, builder.library == null));
             } else {
                 File name = fileHistory.getMostRecent();
+                LOGGER.debug("create with history file " + name);
                 if (name != null) {
                     SwingUtilities.invokeLater(() -> loadFile(name, true, false));
                 }
@@ -221,7 +224,8 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
         toolBar.addSeparator();
 
         createEditMenu(menuBar);
-        createViewMenu(menuBar, toolBar);
+        createViewMenu(menuBar, toolBar, builder.presentationMode);
+        circuitComponent.setPresentationMode(builder.presentationMode);
 
         toolBar.addSeparator();
 
@@ -330,19 +334,33 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 if (model != null && !realTimeClockRunning) {
-                    ArrayList<Clock> cl = model.getClocks();
-                    if (cl.size() == 1) {
-                        model.modify(() -> {
-                            ObservableValue clkVal = cl.get(0).getClockOutput();
-                            clkVal.setBool(!clkVal.getBool());
-                        });
+                    if (stateManager.isActive(runModelMicroState)) {
+                        if (doMicroStep.isEnabled()) {
+                            model.doMicroStep(false);
+                        } else {
+                            ArrayList<Clock> cl = model.getClocks();
+                            if (cl.size() == 1) {
+                                model.modifyWithoutDoStep(() -> {
+                                    ObservableValue clkVal = cl.get(0).getClockOutput();
+                                    clkVal.setBool(!clkVal.getBool());
+                                });
+                            }
+                        }
+                    } else {
+                        ArrayList<Clock> cl = model.getClocks();
+                        if (cl.size() == 1) {
+                            model.modify(() -> {
+                                ObservableValue clkVal = cl.get(0).getClockOutput();
+                                clkVal.setBool(!clkVal.getBool());
+                            });
+                        }
                     }
                 }
             }
         }.setAccelerator("C").enableAcceleratorIn(circuitComponent);
     }
 
-    private void createViewMenu(JMenuBar menuBar, JToolBar toolBar) {
+    private void createViewMenu(JMenuBar menuBar, JToolBar toolBar, boolean presentationModeDefault) {
         ToolTipAction maximize = new ToolTipAction(Lang.get("menu_maximize"), ICON_EXPAND) {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -410,6 +428,12 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
         });
         treeCheckBox.setAccelerator(KeyStroke.getKeyStroke("F5"));
 
+        JCheckBoxMenuItem presentationMode = new JCheckBoxMenuItem(Lang.get("menu_presentationMode"));
+        presentationMode.setSelected(presentationModeDefault);
+        presentationMode.setToolTipText(Lang.get("menu_presentationMode_tt"));
+        presentationMode.addActionListener(actionEvent -> circuitComponent.setPresentationMode(presentationMode.isSelected()));
+        presentationMode.setAccelerator(KeyStroke.getKeyStroke("F4"));
+
         ToolTipAction tutorial = new ToolTipAction(Lang.get("menu_tutorial")) {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -447,6 +471,7 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
         view.add(scaleMenu);
         view.addSeparator();
         view.add(treeCheckBox);
+        view.add(presentationMode);
         view.addSeparator();
         view.add(tutorial.createJMenuItem());
         view.addSeparator();
@@ -758,31 +783,36 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
         ToolTipAction orderInputs = new ToolTipAction(Lang.get("menu_orderInputs")) {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ElementOrder o = new ElementOrder(circuitComponent,
-                        element -> element.equalsDescription(In.DESCRIPTION)
-                                || element.equalsDescription(Clock.DESCRIPTION),
-                        Lang.get("menu_orderInputs"));
-                if (new ElementOrderer<>(Main.this, Lang.get("menu_orderInputs"), o).addOkButton().showDialog())
-                    circuitComponent.modify(o.getModifications());
+                if (!getCircuitComponent().isLocked()) {
+                    ElementOrder o = new ElementOrder(circuitComponent,
+                            element -> element.equalsDescription(In.DESCRIPTION)
+                                    || element.equalsDescription(Clock.DESCRIPTION),
+                            Lang.get("menu_orderInputs"));
+                    if (new ElementOrderer<>(Main.this, Lang.get("menu_orderInputs"), o).addOkButton().showDialog())
+                        circuitComponent.modify(o.getModifications());
+                }
             }
         }.setToolTip(Lang.get("menu_orderInputs_tt"));
 
         ToolTipAction orderOutputs = new ToolTipAction(Lang.get("menu_orderOutputs")) {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ElementOrder o = new ElementOrder(circuitComponent,
-                        element -> element.equalsDescription(Out.DESCRIPTION)
-                                || element.equalsDescription(Out.LEDDESCRIPTION),
-                        Lang.get("menu_orderOutputs"));
-                if (new ElementOrderer<>(Main.this, Lang.get("menu_orderOutputs"), o).addOkButton().showDialog())
-                    circuitComponent.modify(o.getModifications());
+                if (!getCircuitComponent().isLocked()) {
+                    ElementOrder o = new ElementOrder(circuitComponent,
+                            element -> element.equalsDescription(Out.DESCRIPTION)
+                                    || element.equalsDescription(Out.LEDDESCRIPTION),
+                            Lang.get("menu_orderOutputs"));
+                    if (new ElementOrderer<>(Main.this, Lang.get("menu_orderOutputs"), o).addOkButton().showDialog())
+                        circuitComponent.modify(o.getModifications());
+                }
             }
         }.setToolTip(Lang.get("menu_orderOutputs_tt"));
 
         ToolTipAction orderMeasurements = new ToolTipAction(Lang.get("menu_orderMeasurements")) {
             @Override
             public void actionPerformed(ActionEvent e) {
-                orderMeasurements();
+                if (!getCircuitComponent().isLocked())
+                    orderMeasurements();
             }
         }.setToolTip(Lang.get("menu_orderMeasurements_tt"));
 
@@ -820,8 +850,10 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
         ToolTipAction actualToDefault = new ToolTipAction(Lang.get("menu_actualToDefault")) {
             @Override
             public void actionPerformed(ActionEvent e) {
-                circuitComponent.currentToDefault();
-                ensureModelIsStopped();
+                if (!getCircuitComponent().isLocked()) {
+                    circuitComponent.currentToDefault();
+                    ensureModelIsStopped();
+                }
             }
         }.setToolTip(Lang.get("menu_actualToDefault_tt"));
 
@@ -878,6 +910,18 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
         ToolTipAction createTestCaseAction = new CreateTestCaseAction(Lang.get("menu_createBehavioralFixture"))
                 .setToolTip(Lang.get("menu_createBehavioralFixture_tt"));
 
+        ToolTipAction find = new ToolTipAction(Lang.get("menu_find")) {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                String search = showInputDialog(Lang.get("menu_find"));
+                if (search != null && !search.isEmpty()) {
+                    ArrayList<VisualElement> found = getCircuitComponent().getCircuit().findElements(search);
+                    getCircuitComponent().removeHighLighted();
+                    getCircuitComponent().addHighLighted(found);
+                }
+            }
+        }.setAcceleratorCTRLplus('F').enableAcceleratorIn(getCircuitComponent()).setToolTip(Lang.get("menu_find_tt"));
+
         edit.add(circuitComponent.getUndoAction().createJMenuItemNoIcon());
         edit.add(circuitComponent.getRedoAction().createJMenuItemNoIcon());
         edit.addSeparator();
@@ -899,6 +943,7 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
         edit.add(circuitComponent.getPasteAction().createJMenuItem());
         edit.add(circuitComponent.getRotateAction().createJMenuItem());
         edit.add(insertAsNew.createJMenuItem());
+        edit.add(find.createJMenuItem());
         edit.addSeparator();
         edit.add(editSettings.createJMenuItem());
     }
@@ -1057,7 +1102,7 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
         ToolTipAction runModelAction = runModelState.createToolTipAction(Lang.get("menu_run"), ICON_RUN)
                 .setToolTip(Lang.get("menu_run_tt"));
         ToolTipAction runModelMicroAction = runModelMicroState.createToolTipAction(Lang.get("menu_micro"), ICON_MICRO)
-                .setToolTip(Lang.get("menu_micro_tt"));
+                .setToolTip(Lang.get("menu_micro_tt")).setAccelerator("G");
         runToBreakAction = new ToolTipAction(Lang.get("menu_fast"), ICON_FAST) {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -1618,8 +1663,10 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
     }
 
     private void loadFile(File filename, boolean setLibraryRoot, boolean toPref) {
+        LOGGER.debug("loadFile: " + filename);
         try {
             if (setLibraryRoot) {
+                LOGGER.debug("set library root: " + filename);
                 library.setRootFilePath(filename.getParentFile());
                 if (library.getWarningMessage() != null)
                     SwingUtilities.invokeLater(new ErrorMessage(library.getWarningMessage().toString()).setComponent(this));
@@ -1873,7 +1920,8 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
             new SaveAsHelper(Main.this, fc, suffix).checkOverwrite(
                     file -> {
                         settings.setFile("exportDirectory", file.getParentFile());
-                        new Export(circuitComponent.getCircuit(), exportFactory).export(file);
+                        new Export(circuitComponent.getCircuitOrShallowCopy(), exportFactory,
+                                circuitComponent.getPresentationMode()).export(file);
                     }
             );
         }
@@ -1996,6 +2044,26 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
     }
 
     @Override
+    public String doClock() throws RemoteException {
+        if (model != null && !realTimeClockRunning) {
+            try {
+                AddressPicker addressPicker = new AddressPicker();
+                SwingUtilities.invokeAndWait(() -> {
+                    ArrayList<Clock> cl = model.getClocks();
+                    if (cl.size() == 1) {
+                        ObservableValue clkVal = cl.get(0).getClockOutput();
+                        model.modify(() -> clkVal.setBool(!clkVal.getBool()));
+                    }
+                });
+                return addressPicker.getAddressString();
+            } catch (InterruptedException | InvocationTargetException e) {
+                throw new RemoteException("error performing a clock change " + e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    @Override
     public String runToBreak() throws RemoteException {
         AddressPicker addressPicker = new AddressPicker();
         if (model != null && model.isRunToBreakAllowed() && !realTimeClockRunning) {
@@ -2075,6 +2143,9 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
     public static void main(String[] args) {
         Thread.setDefaultUncaughtExceptionHandler(new DigitalUncaughtExceptionHandler());
 
+        if (LOGGER.isDebugEnabled())
+            LOGGER.debug(InfoDialog.getInstance().getRevision());
+
         /*
         The Apple look an feel, which can be enabled by choosing the UIManager.getSystemLookAndFeelClassName()
         on MacOS has problems with the component tree view because it does not support different item heights.
@@ -2100,7 +2171,7 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
             else if (s.trim().length() > 0) {
                 File f = new File(s);
                 if (f.exists())
-                    file = f;
+                    file = f.getAbsoluteFile();
             }
         }
 
@@ -2113,20 +2184,28 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
             if (file != null)
                 builder.setFileToOpen(file);
             SwingUtilities.invokeLater(() -> {
-                final boolean tutorial = Settings.getInstance().getAttributes().get(Keys.SETTINGS_SHOW_TUTORIAL);
-                if (tutorial)
+                final boolean tutorial = (builder.fileToOpen == null) && Settings.getInstance().getAttributes().get(Keys.SETTINGS_SHOW_TUTORIAL);
+                if (tutorial) {
+                    LOGGER.debug("set empty circuit to start tutorial");
                     builder.setCircuit(new Circuit());
+                }
 
                 Main main = builder.build();
-                try {
-                    new RemoteSever(new DigitalHandler(main)).start(41114);
-                } catch (IOException e) {
-                    SwingUtilities.invokeLater(() -> main.statusLabel.setText(Lang.get("err_portIsInUse")));
+                if (Settings.getInstance().get(Keys.SETTINGS_OPEN_REMOTE_PORT)) {
+                    final int port = Settings.getInstance().get(Keys.SETTINGS_REMOTE_PORT);
+                    LOGGER.info("open remote port " + port);
+                    try {
+                        new RemoteSever(new DigitalHandler(main)).start(port);
+                    } catch (IOException e) {
+                        SwingUtilities.invokeLater(() -> main.statusLabel.setText(Lang.get("err_portIsInUse")));
+                    }
                 }
                 main.setVisible(true);
 
-                if (tutorial)
+                if (tutorial) {
+                    LOGGER.debug("open tutorial dialog");
                     new InitialTutorial(main).setVisible(true);
+                }
 
                 CheckForNewRelease.showReleaseDialog(main);
             });
@@ -2154,6 +2233,7 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
         private File baseFileName;
         private boolean keepPrefMainFile;
         private boolean mainFrame = false;
+        private boolean presentationMode;
 
         /**
          * @param fileToOpen the file to open
@@ -2180,6 +2260,15 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
          */
         public MainBuilder setParent(Window parent) {
             this.parent = parent;
+            return this;
+        }
+
+        /**
+         * @param presentationMode presentation mode
+         * @return this for chained calls
+         */
+        public MainBuilder setPresentationMode(boolean presentationMode) {
+            this.presentationMode = presentationMode;
             return this;
         }
 

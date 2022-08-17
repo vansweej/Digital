@@ -362,6 +362,7 @@ public class TestInGUI extends TestCase {
                 .press("F10")
                 .press("RIGHT", 3)
                 .press("DOWN", 2)
+                .press("RIGHT", 1)
                 .press("ENTER")
                 .delay(500)
                 .use(createCheck4BitCounterCircuit())
@@ -445,7 +446,11 @@ public class TestInGUI extends TestCase {
 
     public void testHardware() {
         new GuiTester("dig/manualError/16_hardware.dig")
-                .press("F9")
+                .delay(500)
+                .press("F10")
+                .press("RIGHT", 4)
+                .press("DOWN", 1)
+                .press("ENTER")
                 .delay(500)
                 .add(new GuiTester.WindowCheck<>(Window.class, (gt, w) -> {
                     if (w instanceof AllSolutionsDialog) w.getParent().requestFocus();
@@ -453,7 +458,7 @@ public class TestInGUI extends TestCase {
                 .delay(500)
                 .press("F10")
                 .press("RIGHT", 3)
-                .press("DOWN", 7)
+                .press("DOWN", 3)
                 .press("RIGHT")
                 .press("DOWN", 2)
                 .press("RIGHT")
@@ -958,7 +963,7 @@ public class TestInGUI extends TestCase {
                 .press("RIGHT", 1)
                 .press("DOWN", 1)
                 .press("ENTER", 1)
-                .press("control TAB", 7)
+                .press("control TAB", 8)
                 .press("RIGHT", 1)
                 .add(new GuiTester.SetFocusTo<>(AttributeDialog.class,
                         b -> b instanceof JButton && Lang.get("btn_edit").equals(((JButton) b).getText())))
@@ -970,7 +975,12 @@ public class TestInGUI extends TestCase {
                         b -> b instanceof JButton && Lang.get("btn_edit").equals(((JButton) b).getText())))
                 .press("SPACE")
                 .delay(100)
+                .press("TAB")
+                .press("SPACE")
+                .delay(100)
                 .add(new GuiTester.WindowCheck<>(DataEditor.class))
+                .add(new GuiTester.CloseTopMost())
+                .delay(100)
                 .add(new GuiTester.CloseTopMost())
                 .add(new GuiTester.SetFocusTo<>(ROMEditorDialog.class,
                         b -> b instanceof JButton && Lang.get("btn_clearData").equals(((JButton) b).getText())))
@@ -980,16 +990,12 @@ public class TestInGUI extends TestCase {
                         b -> b instanceof JButton && Lang.get("btn_edit").equals(((JButton) b).getText())))
                 .press("SPACE")
                 .delay(100)
-                .add(new GuiTester.ComponentTraverse<DataEditor>(DataEditor.class) {
+                .add(new GuiTester.ComponentTraverse<AttributeDialog>(AttributeDialog.class) {
                     @Override
                     public void visit(Component component) {
-                        if (component instanceof JTable) {
-                            TableModel model = ((JTable) component).getModel();
-                            assertEquals(4, model.getRowCount());
-                            for (int i = 0; i < 4; i++) {
-                                final Object valueAt = model.getValueAt(i, 1);
-                                assertEquals("0", valueAt.toString());
-                            }
+                        if (component instanceof JComboBox) {
+                            JComboBox box = (JComboBox) component;
+                            assertEquals(0, box.getSelectedIndex());
                             found();
                         }
                     }
@@ -1147,6 +1153,34 @@ public class TestInGUI extends TestCase {
         assertEquals("{\"Q\":0,\"C\":0}", json);
         Thread.sleep(1000);
         ri.doSingleStep();
+        Thread.sleep(1000);
+        json = ri.measure();
+        assertEquals("{\"Q\":1,\"C\":0}", json);
+        Thread.sleep(1000);
+        ri.stop();
+        m.dispose();
+    }
+
+    public void testRemoteInterface2() throws InterruptedException, RemoteException {
+        Main m = new Main.MainBuilder()
+                .setFileToOpen(new File(Resources.getRoot(), "dig/remoteInterface/measure.dig"))
+                .build();
+
+        SwingUtilities.invokeLater(() -> m.setVisible(true));
+        DigitalRemoteInterface ri = m;
+
+        Thread.sleep(1000);
+        ri.start(null, false);
+        Thread.sleep(1000);
+        String json = ri.measure();
+        assertEquals("{\"Q\":0,\"C\":0}", json);
+        Thread.sleep(1000);
+        ri.doClock();
+        Thread.sleep(1000);
+        json = ri.measure();
+        assertEquals("{\"Q\":1,\"C\":1}", json);
+        Thread.sleep(1000);
+        ri.doClock();
         Thread.sleep(1000);
         json = ri.measure();
         assertEquals("{\"Q\":1,\"C\":0}", json);

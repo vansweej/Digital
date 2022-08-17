@@ -14,7 +14,7 @@ import de.neemann.digital.core.io.CommonConnectionType;
 import de.neemann.digital.core.io.InValue;
 import de.neemann.digital.core.io.ProbeMode;
 import de.neemann.digital.core.memory.DataField;
-import de.neemann.digital.core.memory.rom.ROMManger;
+import de.neemann.digital.core.memory.rom.ROMManagerFile;
 import de.neemann.digital.draw.graphics.Orientation;
 import de.neemann.digital.draw.graphics.Style;
 import de.neemann.digital.draw.library.ElementLibrary;
@@ -528,7 +528,24 @@ public final class Keys {
      * enables tunnel rename dialog
      */
     public static final Key<Boolean> SETTINGS_SHOW_TUNNEL_RENAME_DIALOG
-            = new Key<>("tunnelRenameDialog", true).setSecondary();
+            = new Key<>("tunnelRenameDialog", true);
+
+    /**
+     * enables remote port
+     */
+    public static final Key<Boolean> SETTINGS_OPEN_REMOTE_PORT
+            = new Key<>("openRemotePort", false).setSecondary().setRequiresRestart();
+    /**
+     * remote port
+     */
+    public static final Key<Integer> SETTINGS_REMOTE_PORT
+            = new Key.KeyInteger("remotePort", 41114)
+            .setMin(0)
+            .setMax(0xffff)
+            .setComboBoxValues(41114)
+            .setSecondary()
+            .setRequiresRestart()
+            .setDependsOn(SETTINGS_OPEN_REMOTE_PORT);
 
     /**
      * Counter used to detect oscillations
@@ -719,7 +736,7 @@ public final class Keys {
     static {
         String language = Locale.getDefault().getLanguage();
         SETTINGS_USE_EQUALS_KEY = new Key<>("equalsInsteadOfPlus",
-                language.equals("en") || language.equals("fr")).setSecondary();
+                language.equals("en") || language.equals("fr"));
     }
 
     /**
@@ -761,8 +778,8 @@ public final class Keys {
     /**
      * The manager which contains all the roms data
      */
-    public static final Key<ROMManger> ROMMANAGER
-            = new Key<>("romContent", ROMManger::new).setSecondary();
+    public static final Key<ROMManagerFile> ROMMANAGER
+            = new Key<>("romContent", ROMManagerFile::new).setSecondary();
 
 
     /**
@@ -814,12 +831,6 @@ public final class Keys {
      */
     public static final Key<File> SETTINGS_IVERILOG_PATH
             = new Key.KeyFile("iverilogPath", new File("iverilog")).setSecondary();
-
-    /**
-     * Avoid component tooltips in the main panel
-     */
-    public static final Key<Boolean> SETTINGS_NOTOOLTIPS =
-            new Key<>("noComponentToolTips", false);
 
     /**
      * Shape used to represent a visual element
